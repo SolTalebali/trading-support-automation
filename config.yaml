@@ -1,0 +1,29 @@
+# Configuration for the trading support automation pipeline.
+# Paths are relative to the project root.
+
+# Directory where overnight batch files are expected to arrive.
+input_dir: data/raw/
+
+# Directory where daily summary reports are written.
+output_path: data/processed/
+
+# Directory where exception reports are written.
+error_path: data/errors/
+
+# File path for the pipeline's log output.
+log_path: logs/pipeline.log
+
+# Date to run checks for (YYYYMMDD). Change for replays.
+run_date: "20260512"
+
+# Expected cut-off time for overnight file arrival (24-hour HH:MM).
+cutoff_time: "08:00"
+
+# File patterns expected each day ({date} is replaced with run_date).
+expected_files:
+  - trades_{date}.csv
+  - positions_{date}.csv
+  - pnl_{date}.csv
+
+# Maximum allowed percentage change in total notional before flagging as exception.
+notional_tolerance_pct: 10.0
