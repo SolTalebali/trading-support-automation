@@ -11,23 +11,46 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def load_previous_day(file_path: str) -> pd.DataFrame:
-    """Load a previous day's batch file for comparison."""
-    pass
-
-
 def compare_trade_counts(today: pd.DataFrame, yesterday: pd.DataFrame) -> dict:
     """Return a dict with today/yesterday counts and the absolute difference."""
-    pass
+    
+    today_count = len(today)
+    yesterday_count = len(yesterday)
+    difference = abs(today_count - yesterday_count)
+
+    trade_counts = {
+        "today": today_count,
+        "yesterday": yesterday_count,
+        "difference": difference
+    }
+
+    return trade_counts
 
 
 def compare_notional(
-    today: pd.DataFrame, yesterday: pd.DataFrame, tolerance_pct: float
-) -> dict:
+    today: pd.DataFrame, yesterday: pd.DataFrame, tolerance_pct: float) -> dict:
     """Return notional totals, percentage change, and whether it exceeds tolerance."""
-    pass
+    
+    today_notional_sum = today["notional"].sum()
+    yesterday_notional_sum = yesterday["notional"].sum()
+    pct_change = abs(today_notional_sum - yesterday_notional_sum) / yesterday_notional_sum * 100
+    
+    notional_data = {
+        "today": today_notional_sum,
+        "yesterday": yesterday_notional_sum,
+        "pct_change": pct_change,
+        "exceeds_tolerance": pct_change > tolerance_pct
+    }
+
+    return notional_data
 
 
 def compare_record_counts(files: dict[str, pd.DataFrame]) -> dict:
     """Return a mapping of filename -> record count for each file in files."""
-    pass
+    
+    record_counts = {}
+
+    for filename, df in files.items():
+        record_counts[filename] = len(df)
+
+    return record_counts
