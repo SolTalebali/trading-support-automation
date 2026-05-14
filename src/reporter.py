@@ -5,7 +5,6 @@ console report, plain-text file, and CSV exception report.
 """
 
 import logging
-
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,12 @@ def build_summary(
     recon_results: dict,
 ) -> dict:
     """Assemble a summary dict from file check, validation, and reconciliation results."""
-    pass
+    
+    summary = {
+        "missing_files": file_results["missing"],
+        "late_files": file_results["late"],
+        "files_received": len(file_results["missing"]) == 0
+    }
 
 
 def write_console_report(summary: dict) -> None:

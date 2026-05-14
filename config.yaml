@@ -27,3 +27,21 @@ expected_files:
 
 # Maximum allowed percentage change in total notional before flagging as exception.
 notional_tolerance_pct: 10.0
+
+# Per-file schema definitions used by the validation stage.
+schemas:
+  trades:
+    columns: [trade_id, ticker, side, quantity, price, notional, timestamp]
+    key_columns: [trade_id, ticker]
+    numeric_columns: [quantity, price, notional]
+    has_trade_id: true
+  positions:
+    columns: [ticker, quantity, avg_price, market_value]
+    key_columns: [ticker]
+    numeric_columns: [quantity, avg_price, market_value]
+    has_trade_id: false
+  pnl:
+    columns: [ticker, realized_pnl, unrealized_pnl, total_pnl]
+    key_columns: [ticker]
+    numeric_columns: [realized_pnl, unrealized_pnl, total_pnl]
+    has_trade_id: false

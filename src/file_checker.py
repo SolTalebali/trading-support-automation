@@ -11,7 +11,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-def check_arrival_time(file_path: Path, cutoff_time: str) -> bool:
+def arrived_on_time(file_path: Path, cutoff_time: str) -> bool:
     """Return True if the file's modification time is before cutoff_time on its date."""
 
     file_modified_time = datetime.fromtimestamp(file_path.stat().st_mtime).time()
