@@ -47,6 +47,7 @@ def run() -> None:
     }
     
     validation_results = {}
+    exception_rows = []
 
     for file_name, df in loaded_files.items():
         schema_key = file_name.split("_")[0]
@@ -73,6 +74,17 @@ def run() -> None:
             "duplicates": len(duplicate_rows),
             "bad_numerics": len(bad_numeric_rows),
         }
+
+        for label, bad_rows in [
+            ("missing_key", missing_key_rows),
+            ("bad_numeric", bad_numeric_rows),
+            ("duplicate", duplicate_rows),
+        ]:
+            if not bad_rows.empty:
+                tagged = bad_rows.copy()
+                tagged["source_file"] = file_name
+                tagged["reason"] = label
+                exception_rows.append(tagged)
 
 
 if __name__ == "__main__":
