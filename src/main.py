@@ -8,8 +8,11 @@ import logging
 from pathlib import Path
 import yaml
 import pandas as pd
+
+from datetime import datetime, timedelta
 from src.file_checker import get_missing_files, arrived_on_time
 from src.validator import validate_columns, check_missing_keys, check_duplicate_trade_ids, check_numeric_columns
+from src.reconciliation import compare_notional, compare_record_counts, compare_trade_counts
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +49,7 @@ def run() -> None:
         "late": late_files,
     }
     
+
     validation_results = {}
     exception_rows = []
 
@@ -85,6 +89,24 @@ def run() -> None:
                 tagged["source_file"] = file_name
                 tagged["reason"] = label
                 exception_rows.append(tagged)
+
+
+    yesterday_date = (datetime.strptime(config["run_date"], "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
+    yesterday_trade_path = Path(config["input_dir"]) / f"trades_{yesterday_date}.csv"
+    today_trades_name = f"trades_{config['run_date']}.csv"
+    recon_results = None
+
+    if today_trades_name in loaded_files and yesterday_trade_path.exists(): 
+        yesterday_trades = pd.read_csv(yesterday_trade_path)
+        today_trades = loaded_files[today_trades_name]
+        
+        recon_results = {
+            "trade_counts": compare_trade_counts(today_trades, yesterday_trades),
+            "notional": compare_notional(today_trades, yesterday_trades, config["notional_tolerance_pct"]),
+            "record_counts": compare_record_counts(loaded_files),
+        }
+    else:
+        logger.warning("Skipping reconciliation: today or yesterday trades file unavailable")
 
 
 if __name__ == "__main__":
