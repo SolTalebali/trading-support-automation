@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from src.file_checker import get_missing_files, arrived_on_time
 from src.validator import validate_columns, check_missing_keys, check_duplicate_trade_ids, check_numeric_columns
 from src.reconciliation import compare_notional, compare_record_counts, compare_trade_counts
+from src.reporter import build_summary, write_console_report, write_exception_csv, write_text_report
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +109,14 @@ def run() -> None:
     else:
         logger.warning("Skipping reconciliation: today or yesterday trades file unavailable")
 
+    report_summary = build_summary(file_results, validation_results, recon_results)
+    write_console_report(report_summary)
+    write_text_report(report_summary, Path(config['output_path'])/f"summary_{config['run_date']}.txt")
+
+    if exception_rows:
+        merged_exceptions = pd.concat(exception_rows)
+        write_exception_csv(merged_exceptions, Path(config['error_path'])/f"exceptions_{config['run_date']}.csv")
+    
 
 if __name__ == "__main__":
     run()

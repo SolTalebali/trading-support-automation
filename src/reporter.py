@@ -55,9 +55,15 @@ def write_console_report(summary: dict) -> None:
 
 def write_text_report(summary: dict, output_path: str) -> None:
     """Write the daily summary as a plain-text file."""
-    pass
+    
+    with open(output_path, "w") as f:
+        
+        for k, v in summary.items():
+            f.write(f"{k}: {v}\n")
 
 
 def write_exception_csv(exceptions: pd.DataFrame, output_path: str) -> None:
     """Write exception rows to a CSV file."""
-    pass
+    
+    if not exceptions.empty:
+        exceptions.to_csv(output_path, index=False)
