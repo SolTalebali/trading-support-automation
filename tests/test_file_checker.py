@@ -47,7 +47,7 @@ def test_arrived_on_time_positive(tmp_path):
     timestamp = datetime(2026, 5, 12, 7 ,30).timestamp()
     os.utime(tmp_path / "trades_20260512.csv", (timestamp, timestamp))
 
-    result = arrived_on_time(tmp_path / "trades_20260512.csv", "08:00")
+    result = arrived_on_time(tmp_path / "trades_20260512.csv", "08:00", "20260512")
 
     assert result
 
@@ -58,6 +58,6 @@ def test_arrived_on_time_negative(tmp_path):
     timestamp = datetime(2026, 5, 12, 8 ,30).timestamp()
     os.utime(tmp_path / "trades_20260512.csv", (timestamp, timestamp))
 
-    result = arrived_on_time(tmp_path / "trades_20260512.csv", "08:00")
+    result = arrived_on_time(tmp_path / "trades_20260512.csv", "08:00", "20260512")
 
     assert not result

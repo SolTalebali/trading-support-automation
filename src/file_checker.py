@@ -11,13 +11,13 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-def arrived_on_time(file_path: Path, cutoff_time: str) -> bool:
-    """Return True if the file's modification time is before cutoff_time on its date."""
+def arrived_on_time(file_path: Path, cutoff_time: str, run_date: str) -> bool:
+    """Return True if the file's modification datetime is before run_date + cutoff_time."""
 
-    file_modified_time = datetime.fromtimestamp(file_path.stat().st_mtime).time()
-    cutoff_time_datetime = datetime.strptime(cutoff_time, "%H:%M").time()
+    file_modified = datetime.fromtimestamp(file_path.stat().st_mtime)
+    cutoff_datetime = datetime.strptime(f"{run_date} {cutoff_time}", "%Y%m%d %H:%M")
 
-    return file_modified_time < cutoff_time_datetime
+    return file_modified < cutoff_datetime
 
 
 def get_missing_files(input_dir: str, date: str, expected_files: list[str]) -> list[str]:

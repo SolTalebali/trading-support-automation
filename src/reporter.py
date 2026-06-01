@@ -28,7 +28,8 @@ def build_summary(
     if (not file_results["missing"] 
             and not file_results["late"] 
             and validation_errors == 0 
-            and (recon_results is None or not recon_results["notional"]["exceeds_tolerance"])):
+            and recon_results is not None
+            and not recon_results["notional"]["exceeds_tolerance"]):
         
         recommendation = "PASS"
 

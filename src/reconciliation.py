@@ -35,10 +35,10 @@ def compare_notional(
     pct_change = abs(today_notional_sum - yesterday_notional_sum) / yesterday_notional_sum * 100
     
     notional_data = {
-        "today": today_notional_sum,
-        "yesterday": yesterday_notional_sum,
-        "pct_change": pct_change,
-        "exceeds_tolerance": pct_change > tolerance_pct
+        "today": round(float(today_notional_sum), 2),
+        "yesterday": round(float(yesterday_notional_sum), 2),
+        "pct_change": round(float(pct_change), 2),
+        "exceeds_tolerance": bool(pct_change > tolerance_pct)
     }
 
     return notional_data

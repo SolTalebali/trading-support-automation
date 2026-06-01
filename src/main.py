@@ -27,6 +27,7 @@ def run() -> None:
     logging.basicConfig(
         filename=config["log_path"],
         level=logging.INFO,
+        filemode="w",
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
     logger.info("Pipeline started for run_date=%s", config["run_date"])
@@ -42,14 +43,14 @@ def run() -> None:
         input_path = Path(config["input_dir"]) / file_name
         loaded_files[file_name] = pd.read_csv(input_path)
 
-        if not arrived_on_time(input_path, config["cutoff_time"]):
+        if not arrived_on_time(input_path, config["cutoff_time"], config["run_date"]):
             late_files.append(file_name)
 
     file_results = {
         "missing": missing_files,
         "late": late_files,
     }
-    
+    logger.info("File checks complete: %d missing, %d late", len(missing_files), len(late_files))
 
     validation_results = {}
     exception_rows = []
@@ -92,6 +93,12 @@ def run() -> None:
                 exception_rows.append(tagged)
 
 
+    total_errors = sum(
+        v["missing_keys"] + v["duplicates"] + v["bad_numerics"]
+        for v in validation_results.values()
+    )
+    logger.info("Validation complete: %d total errors across %d files", total_errors, len(validation_results))
+
     yesterday_date = (datetime.strptime(config["run_date"], "%Y%m%d") - timedelta(days=1)).strftime("%Y%m%d")
     yesterday_trade_path = Path(config["input_dir"]) / f"trades_{yesterday_date}.csv"
     today_trades_name = f"trades_{config['run_date']}.csv"
@@ -106,16 +113,28 @@ def run() -> None:
             "notional": compare_notional(today_trades, yesterday_trades, config["notional_tolerance_pct"]),
             "record_counts": compare_record_counts(loaded_files),
         }
+        logger.info(
+            "Reconciliation complete: notional pct_change=%.2f, exceeds_tolerance=%s",
+            recon_results["notional"]["pct_change"],
+            recon_results["notional"]["exceeds_tolerance"],
+        )
     else:
         logger.warning("Skipping reconciliation: today or yesterday trades file unavailable")
 
     report_summary = build_summary(file_results, validation_results, recon_results)
     write_console_report(report_summary)
-    write_text_report(report_summary, Path(config['output_path'])/f"summary_{config['run_date']}.txt")
+
+    text_path = Path(config['output_path']) / f"summary_{config['run_date']}.txt"
+    write_text_report(report_summary, text_path)
+    logger.info("Wrote text report to %s", text_path)
 
     if exception_rows:
         merged_exceptions = pd.concat(exception_rows)
-        write_exception_csv(merged_exceptions, Path(config['error_path'])/f"exceptions_{config['run_date']}.csv")
+        csv_path = Path(config['error_path']) / f"exceptions_{config['run_date']}.csv"
+        write_exception_csv(merged_exceptions, csv_path)
+        logger.info("Wrote %d exception rows to %s", len(merged_exceptions), csv_path)
+
+    logger.info("Pipeline complete with recommendation=%s", report_summary["recommendation"])
     
 
 if __name__ == "__main__":

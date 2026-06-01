@@ -17,7 +17,9 @@ Run from the project root:
 
 from __future__ import annotations
 
+import os
 import random
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -151,24 +153,26 @@ def inject_pnl_issues(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def write_csv(df: pd.DataFrame, stem: str, date: str) -> None:
+def write_csv(df: pd.DataFrame, stem: str, date: str, arrival_time: str = "07:30") -> None:
     path = OUTPUT_DIR / f"{stem}_{date}.csv"
     df.to_csv(path, index=False)
-    print(f"Wrote {len(df)} rows to {path}")
+    timestamp = datetime.strptime(f"{date} {arrival_time}", "%Y%m%d %H:%M").timestamp()
+    os.utime(path, (timestamp, timestamp))
+    print(f"Wrote {len(df)} rows to {path} (arrival {arrival_time})")
 
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Yesterday — clean baseline for reconciliation
-    write_csv(build_trades(YESTERDAY, N_TRADES, seed_offset=10), "trades", YESTERDAY)
-    write_csv(build_positions(seed_offset=10), "positions", YESTERDAY)
-    write_csv(build_pnl(seed_offset=10), "pnl", YESTERDAY)
+    # Yesterday — clean baseline for reconciliation (all on time)
+    write_csv(build_trades(YESTERDAY, N_TRADES, seed_offset=10), "trades", YESTERDAY, "07:15")
+    write_csv(build_positions(seed_offset=10), "positions", YESTERDAY, "07:20")
+    write_csv(build_pnl(seed_offset=10), "pnl", YESTERDAY, "07:25")
 
-    # Today — issues injected for the pipeline to catch
-    write_csv(inject_trade_issues(build_trades(TODAY, N_TRADES)), "trades", TODAY)
-    write_csv(inject_position_issues(build_positions()), "positions", TODAY)
-    write_csv(inject_pnl_issues(build_pnl()), "pnl", TODAY)
+    # Today — issues injected; positions deliberately late to exercise the cut-off check
+    write_csv(inject_trade_issues(build_trades(TODAY, N_TRADES)), "trades", TODAY, "07:30")
+    write_csv(inject_position_issues(build_positions()), "positions", TODAY, "08:30")
+    write_csv(inject_pnl_issues(build_pnl()), "pnl", TODAY, "07:55")
 
 
 if __name__ == "__main__":
